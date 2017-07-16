@@ -1,39 +1,58 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance
+from random import choice
 import pictures
 import quote
 import textwrap
 
 text = quote.parse_quote(quote.load_feed())
-pix = pictures.download_photo(pictures.get_url_pix(
+pic = pictures.download_photo(pictures.get_url_pic(
     pictures.get_random_link(pictures.get_max_id())))
+types = open('fonts/list.txt').read().split('\n')
+
+is_rgb = lambda x: True if x.mode == 'RGB' else False
 
 
-def adding_text(pix, text):
-    output_pix = pix.split('.')[-2] + '_out.' + pix.split('.')[-1]
-    lines = textwrap.wrap(text, width=20)
-    y_text = 100
-    image = Image.open(pix)
-    # font = ImageFont.load_default().font
-    # font = ImageFont.truetype("fonts/Verdana.ttf", 48)
-    # font = ImageFont.truetype("fonts/CAC Champagne.ttf", 32)
-    font = ImageFont.truetype("fonts/44v2.ttf", 32)
+def convert_to_png_rgb(pic):
+    png_pic = pic.split('.')[-2] + '.png'
+    Image.open(pic).convert('RGB').save(png_pic)
+    return png_pic
+
+
+def get_size_for_rect(img, lines):
+    pass
+
+
+def adding_text(pic, text):
+    # print(pic)
+    if not is_rgb:
+        pic = convert_to_png_rgb(pic)
+    output_pic = 'out/' + \
+        pic.split('.')[-2].split('/')[-1] + '_out.' + pic.split('.')[-1]
+    image = Image.open(pic)
+    print(image.size)
+    font = ImageFont.truetype('fonts/' + choice(types), 32)
     draw = ImageDraw.Draw(image)
-    # draw.text((0, 0), text, (0, 0, 0), font=font)
-    # draw.multiline_text((50, 50), text, fill='white', font=font)
+    lines = textwrap.wrap(text, width=40)
+    margin = offset = 40
+    # print(font.getsize(lines[0])[0], font.getsize(lines[0])[1])
+    # print(max(lines))
+    rect_y1 = (font.getsize(lines[0])[1] + 2) * len(lines)
+    rect_x1 = max([(font.getsize(line)[0]) for line in lines])
+    rect_size = (rect_x1, rect_y1)
+    rect_img = Image.new('RGBA', rect_size, (0, 0, 0, 140))
+    image.paste(rect_img, (margin, margin), rect_img)
     for line in lines:
-        width, height = font.getsize(line)
-        draw.text((100, y_text), line, font=font, fill='black')
-        y_text += height
-    image.save(output_pix)
+        draw.text((margin, offset), line, font=font, fill=(255, 255, 255))
+        offset += font.getsize(line)[1]
+        offset += 2
+    image.save(output_pic)
 
 
 def main():
-    print(text, pix)
-    adding_text(pix, text)
+    print(text, pic)
+    adding_text(pic, text)
 
 if __name__ == '__main__':
     main()

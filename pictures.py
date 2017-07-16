@@ -17,22 +17,26 @@ def get_max_id():
 def download_photo(url):
     filename = 'src/' + url.split('/')[-1]
     r = requests.get(url, stream=True)
-    with open(filename, 'w') as file:
+    with open(filename, 'wb') as file:
         for chunk in r.iter_content(4096):
             file.write(chunk)
     return filename
 
 
 def get_random_link(max_id):
-    url_pix = source_url + '/' + str(randint(0, max_id))
-    if check_existence_pic(url_pix):
-        return url_pix
+    url_pic = source_url + '/' + str(randint(0, max_id))
+    if check_existence_pic(url_pic) and url_pic != 'None':
+        return url_pic
     else:
         get_random_link(max_id)
 
 
-def get_url_pix(url):
-    soup = BeautifulSoup(requests.get(url).text, 'lxml')
+def get_url_pic(url):
+    try:
+        soup = BeautifulSoup(requests.get(url).text, 'lxml')
+    except MissingSchema:
+        print("Opachki")
+        get_url_pic(get_random_link(get_max_id()))
     result = soup.find('img')['src']
     return result
 
@@ -46,7 +50,7 @@ def check_existence_pic(url):
 
 
 def main():
-    print(download_photo(get_url_pix(get_random_link(get_max_id()))))
+    print(download_photo(get_url_pic(get_random_link(get_max_id()))))
 
 if __name__ == '__main__':
     main()

@@ -12,7 +12,10 @@ def load_feed():
 
 def parse_quote(text):
     quot = text.split('<description>')[2].split('</description>')[0]
-    result = quot.split('&quot;')[1] + quot.split('&quot;')[2]
+    result = '\u201c' + \
+        quot.split('&quot;')[1] + '\u201d\n' + \
+        '-'.join(quot.split('&quot;')[2].split('-')[1:])
+    result = result.replace('&lt;br/&gt;', '<br/>')
     return result
 
 
